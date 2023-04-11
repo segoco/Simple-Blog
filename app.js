@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.get("/", function (req, res) {
-  res.render("home", { title: "Home", homeStartingContent: homeStartingContent });
+  res.render("home", { title: "Home", homeStartingContent: homeStartingContent, posts: posts });
 });
 app.get("/about", function (req, res) {
   res.render("about", { title: "About", aboutContent: aboutContent });
@@ -31,13 +31,23 @@ app.get("/contact", function (req, res) {
 app.get("/compose", function (req, res) {
   res.render("compose", { title: "Compose" });
 });
+app.get("/posts/title/:title", function (req, res) {
+  const requestedTitle = req.params.title;
+  console.log(requestedTitle);
+  posts.forEach(function (post) {
+    const storedTitle = post.title;
+    if (storedTitle === requestedTitle) {
+      res.render("post", { postTitle: post.title, postContent: post.content });
+    }
+  });
+});
+
 app.post("/compose", function (req, res) {
   const post = {
     title: req.body.postTitle,
     content: req.body.postBody,
   };
-  console.log("El post es: " + post.title + " " + post.content);
-  //posts.push(post);
+  posts.push(post);
   res.redirect("/");
 });
 
