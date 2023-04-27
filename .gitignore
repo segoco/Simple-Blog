@@ -6,3 +6,5 @@ views/.DS_Store
 node_modules/
 
 .eslintrc.json
+
+.env
