@@ -3,7 +3,7 @@ public/.DS_Store
 
 views/.DS_Store
 
-node_modules/
+node_modules
 
 .eslintrc.json
 
