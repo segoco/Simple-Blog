@@ -1,12 +1,26 @@
 <%- include('partials/header'); %>
 <h1><%= title%></h1>
-<form action="/compose" method="post">
+<form action="/compose" class="box" method="post">
   <div class="form-group">
     <label for="postTitle">Title</label>
     <input type="text" class="form-control" name="postTitle" id="postTitle" placeholder="Write a title..." />
     <label for="postBody">Post</label>
-    <textarea class="form-control" name="postBody" id="postBody" rows="8" placeholder="Write your post content here..."></textarea>   
+    <textarea
+      class="form-control"
+      name="postBody"
+      id="postBody"
+      rows="8"
+      placeholder="Write your post content here..."></textarea>
   </div>
   <button type="submit" name="button" class="btn btn-primary">Publish</button>
+  <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="" />
 </form>
+
+<script>
+  grecaptcha.ready(function () {
+    grecaptcha.execute('6Lf5csYlAAAAACv9UWFysiafbR2srmjF3sHqklJ9', { action: 'submit' }).then(function (token) {
+      document.getElementById('g-recaptcha-response').value = token;
+    });
+  });
+</script>
 <%- include('partials/footer'); %>
