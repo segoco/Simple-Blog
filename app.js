@@ -35,7 +35,6 @@ app.get('/', (req, res) => {
     posts = result;
     res.render('home', { title: 'Home', homeStartingContent, posts });
   });
-  // res.render('home', { title: 'Home', homeStartingContent, posts });
 });
 
 app.get('/about', (req, res) => {
@@ -52,8 +51,6 @@ app.get('/compose', (req, res) => {
 
 app.get('/posts/title/:title', (req, res) => {
   const requestedTitle = _.capitalize(req.params.title);
-  console.log(requestedTitle);
-
   Post.findOne({ Title: requestedTitle }).then((result) => {
     if (result) {
       res.render('post', { postTitle: result.Title, postContent: result.Content });
@@ -72,7 +69,6 @@ app.post('/compose', (req, res) => {
         Content: req.body.postBody,
       });
       newPost.save().finally(() => {
-        console.log('Post saved to database');
         res.redirect('/');
       });
     } else {
