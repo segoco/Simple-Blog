@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const db = require('./db');
 const favicon = require('serve-favicon');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -12,7 +13,7 @@ const homeStartingContent =
 const aboutContent =
   'This is a simple blog, created to practice programming concepts with NodeJS. To create a blog post click on the compose option.';
 const contactContent = 'Contact me by submitting the form below.';
-const posts = [];
+let posts = [];
 
 const app = express();
 
@@ -21,13 +22,20 @@ app.use(favicon(path.join(__dirname, 'public', 'images', 'favicon.ico')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+db.connect();
+
+const Post = require('./model/post');
 
 dotenv.config();
 const { RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY } = process.env;
 const recaptcha = new Recaptcha(RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY);
 
 app.get('/', (req, res) => {
-  res.render('home', { title: 'Home', homeStartingContent, posts });
+  Post.find().then((result) => {
+    posts = result;
+    res.render('home', { title: 'Home', homeStartingContent, posts });
+  });
+  // res.render('home', { title: 'Home', homeStartingContent, posts });
 });
 
 app.get('/about', (req, res) => {
@@ -43,12 +51,14 @@ app.get('/compose', (req, res) => {
 });
 
 app.get('/posts/title/:title', (req, res) => {
-  const requestedTitle = _.lowerCase(req.params.title);
+  const requestedTitle = _.capitalize(req.params.title);
   console.log(requestedTitle);
-  posts.forEach((post) => {
-    const storedTitle = _.lowerCase(post.title);
-    if (storedTitle === requestedTitle) {
-      res.render('post', { postTitle: post.title, postContent: post.content });
+
+  Post.findOne({ Title: requestedTitle }).then((result) => {
+    if (result) {
+      res.render('post', { postTitle: result.Title, postContent: result.Content });
+    } else {
+      res.render('post', { postTitle: 'Post not found', postContent: 'Please search for a valid post.' });
     }
   });
 });
@@ -57,12 +67,14 @@ app.post('/compose', (req, res) => {
   recaptcha.verify(req, (error, data) => {
     if (!error) {
       // success code
-      const post = {
-        title: req.body.postTitle,
-        content: req.body.postBody,
-      };
-      posts.push(post);
-      res.redirect('/');
+      const newPost = new Post({
+        Title: _.capitalize(req.body.postTitle),
+        Content: req.body.postBody,
+      });
+      newPost.save().finally(() => {
+        console.log('Post saved to database');
+        res.redirect('/');
+      });
     } else {
       // error code
       console.log(`Captcha error ${error}`);
@@ -73,4 +85,10 @@ app.post('/compose', (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log('Server started on port 3000');
+});
+
+process.on('SIGINT', () => {
+  db.disconnect();
+  console.error('Connection to database closed.');
+  process.exit();
 });
